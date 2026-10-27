@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using RecebimentoMercadorias.Services;
+using Microsoft.EntityFrameworkCore;
+using RecebimentoMercadorias.Data;
+using RecebimentoMercadorias.Entities;
 
 namespace RecebimentoMercadorias.Controllers;
 
@@ -7,23 +9,26 @@ namespace RecebimentoMercadorias.Controllers;
 [Route("api/[controller]")]
 public sealed class UsuariosController : ControllerBase
 {
-    private readonly UsuarioService _usuarioService;
+    private readonly AppDbContext _context;
 
-    public UsuariosController(UsuarioService usuarioService)
+    public UsuariosController(AppDbContext context)
     {
-        _usuarioService = usuarioService;
+        _context = context;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Usuario>> Get()
+    public async Task<ActionResult<IEnumerable<Usuario>>> Get()
     {
-        return Ok(_usuarioService.ObterTodos());
+        return await _context.Usuarios
+            .OrderBy(u => u.Nome)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<Usuario> GetById(int id)
+    public async Task<ActionResult<Usuario>> GetById(int id)
     {
-        var usuario = _usuarioService.ObterPorId(id);
+        var usuario = await _context.Usuarios.FindAsync(id);
 
         if (usuario is null)
         {
@@ -34,7 +39,7 @@ public sealed class UsuariosController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Usuario> Post([FromBody] CreateUsuarioRequest request)
+    public async Task<ActionResult<Usuario>> Post([FromBody] CreateUsuarioRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Nome) ||
             string.IsNullOrWhiteSpace(request.Email) ||
@@ -43,17 +48,23 @@ public sealed class UsuariosController : ControllerBase
             return BadRequest("Nome, e-mail e cargo são obrigatórios.");
         }
 
-        var usuario = _usuarioService.Criar(
-            request.Nome,
-            request.Email,
-            request.Cargo,
-            request.Ativo);
+        var usuario = new Usuario
+        {
+            Nome = request.Nome.Trim(),
+            Email = request.Email.Trim(),
+            Cargo = request.Cargo.Trim(),
+            Ativo = request.Ativo,
+            DataCadastro = DateTime.UtcNow
+        };
+
+        _context.Usuarios.Add(usuario);
+        await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult<Usuario> Put(int id, [FromBody] UpdateUsuarioRequest request)
+    public async Task<ActionResult<Usuario>> Put(int id, [FromBody] UpdateUsuarioRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Nome) ||
             string.IsNullOrWhiteSpace(request.Email) ||
@@ -62,30 +73,35 @@ public sealed class UsuariosController : ControllerBase
             return BadRequest("Nome, e-mail e cargo são obrigatórios.");
         }
 
-        var usuarioAtualizado = _usuarioService.Atualizar(
-            id,
-            request.Nome,
-            request.Email,
-            request.Cargo,
-            request.Ativo);
+        var usuario = await _context.Usuarios.FindAsync(id);
 
-        if (usuarioAtualizado is null)
+        if (usuario is null)
         {
             return NotFound();
         }
 
-        return Ok(usuarioAtualizado);
+        usuario.Nome = request.Nome.Trim();
+        usuario.Email = request.Email.Trim();
+        usuario.Cargo = request.Cargo.Trim();
+        usuario.Ativo = request.Ativo;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(usuario);
     }
 
     [HttpDelete("{id:int}")]
-    public ActionResult Delete(int id)
+    public async Task<ActionResult> Delete(int id)
     {
-        var removido = _usuarioService.Remover(id);
+        var usuario = await _context.Usuarios.FindAsync(id);
 
-        if (!removido)
+        if (usuario is null)
         {
             return NotFound();
         }
+
+        _context.Usuarios.Remove(usuario);
+        await _context.SaveChangesAsync();
 
         return NoContent();
     }

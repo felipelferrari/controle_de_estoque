@@ -1,12 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RecebimentoMercadorias.Data;
+using RecebimentoMercadorias.Services; // <-- Certifique-se de incluir esta linha
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Adiciona os controllers do projeto
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// REGISTRE OS SERVIÇOS AQUI PARA A INJEÇÃO DE DEPENDÊNCIA:
+builder.Services.AddScoped<FornecedorService>();
+builder.Services.AddScoped<UsuarioService>();
 
 // Configuração do Swagger com prevenção contra conflito de DTOs e Namespaces
 builder.Services.AddSwaggerGen(options =>
@@ -18,11 +23,10 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API para gestão de fornecedores, produtos com leitor de código de barras e estoque de supermercado."
     });
 
-    // Resolve o conflito entre Entities.Fornecedor e Services.Fornecedor
     options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
 });
 
-// Configuração do CORS para permitir requisições do frontend
+// Configuração do CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -33,18 +37,17 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Banco de dados em memória para execução e testes rápidos
+// Banco de dados em memória
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("EstoqueDb"));
 
 var app = builder.Build();
 
-// SWAGGER ATIVO EM TODOS OS AMBIENTES (Sem a condição 'if (app.Environment.IsDevelopment())')
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Controle de Estoque API v1");
-    c.RoutePrefix = string.Empty; // Define a rota raiz (http://localhost:5000) como o Swagger
+    c.RoutePrefix = string.Empty;
 });
 
 app.UseHttpsRedirection();

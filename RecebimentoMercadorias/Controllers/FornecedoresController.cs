@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RecebimentoMercadorias.Entities; // <-- Adicionado para reconhecer a entidade Fornecedor
 using RecebimentoMercadorias.Services;
 
 namespace RecebimentoMercadorias.Controllers;

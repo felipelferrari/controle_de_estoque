@@ -17,7 +17,7 @@ public sealed class FornecedorService
     {
         return _context.Fornecedores
             .AsNoTracking()
-            .OrderBy(f => f.Nome)
+            .OrderBy(f => f.RazaoSocial)
             .ToList();
     }
 
@@ -27,14 +27,23 @@ public sealed class FornecedorService
             .FirstOrDefault(f => f.Id == id);
     }
 
-    public Fornecedor Criar(string nome, string cnpj, string email, string telefone, bool ativo = true)
+    public Fornecedor Criar(
+        string razaoSocial,
+        string? nomeFantasia,
+        string cnpj,
+        string? telefone,
+        string? email,
+        string? endereco,
+        bool ativo = true)
     {
         var fornecedor = new Fornecedor
         {
-            Nome = nome.Trim(),
+            RazaoSocial = razaoSocial.Trim(),
+            NomeFantasia = string.IsNullOrWhiteSpace(nomeFantasia) ? null : nomeFantasia.Trim(),
             Cnpj = cnpj.Trim(),
-            Email = email.Trim(),
-            Telefone = telefone.Trim(),
+            Telefone = string.IsNullOrWhiteSpace(telefone) ? null : telefone.Trim(),
+            Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim(),
+            Endereco = string.IsNullOrWhiteSpace(endereco) ? null : endereco.Trim(),
             Ativo = ativo,
             DataCadastro = DateTime.UtcNow
         };
@@ -45,16 +54,26 @@ public sealed class FornecedorService
         return fornecedor;
     }
 
-    public Fornecedor? Atualizar(int id, string nome, string cnpj, string email, string telefone, bool ativo)
+    public Fornecedor? Atualizar(
+        int id,
+        string razaoSocial,
+        string? nomeFantasia,
+        string cnpj,
+        string? telefone,
+        string? email,
+        string? endereco,
+        bool ativo)
     {
         var fornecedor = _context.Fornecedores.FirstOrDefault(f => f.Id == id);
 
         if (fornecedor is null) return null;
 
-        fornecedor.Nome = nome.Trim();
+        fornecedor.RazaoSocial = razaoSocial.Trim();
+        fornecedor.NomeFantasia = string.IsNullOrWhiteSpace(nomeFantasia) ? null : nomeFantasia.Trim();
         fornecedor.Cnpj = cnpj.Trim();
-        fornecedor.Email = email.Trim();
-        fornecedor.Telefone = telefone.Trim();
+        fornecedor.Telefone = string.IsNullOrWhiteSpace(telefone) ? null : telefone.Trim();
+        fornecedor.Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+        fornecedor.Endereco = string.IsNullOrWhiteSpace(endereco) ? null : endereco.Trim();
         fornecedor.Ativo = ativo;
 
         _context.SaveChanges();

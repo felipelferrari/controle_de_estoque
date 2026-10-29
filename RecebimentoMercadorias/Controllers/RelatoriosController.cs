@@ -19,26 +19,33 @@ public sealed class RelatoriosController : ControllerBase
     [HttpGet("resumo")]
     public ActionResult<ResumoEstoqueResponse> GetResumo()
     {
-        var fornecedores = _fornecedorService.ObterTodos();
-        var usuarios = _usuarioService.ObterTodos();
-
-        var response = new ResumoEstoqueResponse
+        try
         {
-            TotalFornecedores = fornecedores.Count,
-            FornecedoresAtivos = fornecedores.Count(f => f.Ativo),
-            TotalUsuarios = usuarios.Count,
-            UsuariosAtivos = usuarios.Count(u => u.Ativo),
-            UltimoFornecedorCadastrado = fornecedores
-                .OrderByDescending(f => f.DataCadastro)
-                .Select(f => f.Nome)
-                .FirstOrDefault(),
-            UltimoUsuarioCadastrado = usuarios
-                .OrderByDescending(u => u.DataCadastro)
-                .Select(u => u.Nome)
-                .FirstOrDefault()
-        };
+            var fornecedores = _fornecedorService.ObterTodos() ?? new();
+            var usuarios = _usuarioService.ObterTodos() ?? new();
 
-        return Ok(response);
+            var response = new ResumoEstoqueResponse
+            {
+                TotalFornecedores = fornecedores.Count,
+                FornecedoresAtivos = fornecedores.Count(f => f.Ativo),
+                TotalUsuarios = usuarios.Count,
+                UsuariosAtivos = usuarios.Count(u => u.Ativo),
+                UltimoFornecedorCadastrado = fornecedores
+                    .OrderByDescending(f => f.DataCadastro)
+                    .Select(f => !string.IsNullOrWhiteSpace(f.NomeFantasia) ? f.NomeFantasia : f.RazaoSocial)
+                    .FirstOrDefault() ?? "Nenhum fornecedor cadastrado",
+                UltimoUsuarioCadastrado = usuarios
+                    .OrderByDescending(u => u.DataCadastro)
+                    .Select(u => u.Nome)
+                    .FirstOrDefault() ?? "Nenhum usuário cadastrado"
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Erro ao gerar resumo", Error = ex.Message });
+        }
     }
 }
 

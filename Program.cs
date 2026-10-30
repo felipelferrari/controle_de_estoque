@@ -12,6 +12,7 @@ builder.Services.AddEndpointsApiExplorer();
 // Injeção de dependência dos serviços
 builder.Services.AddScoped<FornecedorService>();
 builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<ProdutoService>();
 
 // Configuração do Swagger
 builder.Services.AddSwaggerGen(options =>

@@ -30,7 +30,4 @@ public sealed class Fornecedor
 
     [Column("data_cadastro")]
     public DateTime? DataCadastro { get; set; } = DateTime.UtcNow;
-
-    // Relacionamento 1-para-Muitos com os Produtos do supermercado
-    public ICollection<Produto> Produtos { get; set; } = new List<Produto>();
 }

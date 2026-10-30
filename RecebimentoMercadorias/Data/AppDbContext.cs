@@ -32,18 +32,21 @@ public sealed class AppDbContext : DbContext
             entity.Property(f => f.DataCadastro).HasColumnName("data_cadastro").HasDefaultValueSql("now()");
         });
 
-        // Cria um índice único para o Código de Barras (melhora a performance na leitura por BIP)
-        modelBuilder.Entity<Produto>()
-            .HasIndex(p => p.CodigoBarras)
-            .IsUnique();
-
-        // Configuração da precisão decimal para valores monetários
-        modelBuilder.Entity<Produto>()
-            .Property(p => p.PrecoCusto)
-            .HasPrecision(18, 2);
-
-        modelBuilder.Entity<Produto>()
-            .Property(p => p.PrecoVenda)
-            .HasPrecision(18, 2);
+        modelBuilder.Entity<Produto>(entity =>
+        {
+            entity.ToTable("produtos");
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Id).HasColumnName("id_produto").ValueGeneratedOnAdd();
+            entity.Property(p => p.CodigoBarras).HasColumnName("codigo_barras").HasMaxLength(50);
+            entity.HasIndex(p => p.CodigoBarras).IsUnique();
+            entity.Property(p => p.Nome).HasColumnName("nome").HasMaxLength(100).IsRequired();
+            entity.Property(p => p.Descricao).HasColumnName("descricao");
+            entity.Property(p => p.PrecoCusto).HasColumnName("preco_custo").HasColumnType("numeric(10,2)").IsRequired();
+            entity.Property(p => p.PrecoVenda).HasColumnName("preco_venda").HasColumnType("numeric(10,2)").IsRequired();
+            entity.Property(p => p.IdCategoria).HasColumnName("id_categoria");
+            entity.Property(p => p.IdFornecedor).HasColumnName("id_fornecedor");
+            entity.Property(p => p.Ativo).HasColumnName("ativo").HasDefaultValue(true);
+            entity.Property(p => p.DataCadastro).HasColumnName("data_cadastro").HasDefaultValueSql("now()");
+        });
     }
 }

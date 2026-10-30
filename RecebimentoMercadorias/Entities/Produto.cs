@@ -1,18 +1,36 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace RecebimentoMercadorias.Entities;
 
 public sealed class Produto
 {
+    [Column("id_produto")]
     public int Id { get; set; }
-    public string CodigoBarras { get; set; } = string.Empty; // EAN-13 / GTIN lido pelo leitor
+
+    [Column("codigo_barras")]
+    public string? CodigoBarras { get; set; }
+
+    [Column("nome")]
     public string Nome { get; set; } = string.Empty;
+
+    [Column("descricao")]
+    public string? Descricao { get; set; }
+
+    [Column("preco_custo")]
     public decimal PrecoCusto { get; set; }
+
+    [Column("preco_venda")]
     public decimal PrecoVenda { get; set; }
-    public int QuantidadeEstoque { get; set; }
-    public int EstoqueMinimo { get; set; }
-    public DateTime? DataValidade { get; set; }
+
+    [Column("id_categoria")]
+    public int? IdCategoria { get; set; }
+
+    [Column("id_fornecedor")]
+    public int? IdFornecedor { get; set; }
+
+    [Column("ativo")]
     public bool Ativo { get; set; } = true;
 
-    // Relacionamento com o Fornecedor
-    public int FornecedorId { get; set; }
-    public Fornecedor? Fornecedor { get; set; }
+    [Column("data_cadastro")]
+    public DateTime? DataCadastro { get; set; } = DateTime.UtcNow;
 }

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RecebimentoMercadorias.Data;
 using RecebimentoMercadorias.Entities;
+using RecebimentoMercadorias.Services;
 
 namespace RecebimentoMercadorias.Controllers;
 
@@ -9,121 +8,124 @@ namespace RecebimentoMercadorias.Controllers;
 [Route("api/[controller]")]
 public sealed class ProdutosController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ProdutoService _produtoService;
 
-    public ProdutosController(AppDbContext context)
+    public ProdutosController(ProdutoService produtoService)
     {
-        _context = context;
+        _produtoService = produtoService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Produto>>> Get()
+    public ActionResult<IEnumerable<Produto>> Get()
     {
-        return await _context.Produtos
-            .Include(p => p.Fornecedor)
-            .AsNoTracking()
-            .ToListAsync();
+        return Ok(_produtoService.ObterTodos());
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Produto>> GetById(int id)
+    public ActionResult<Produto> GetById(int id)
     {
-        var produto = await _context.Produtos
-            .Include(p => p.Fornecedor)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (produto is null) return NotFound();
-
-        return Ok(produto);
-    }
-
-    // Endpoint acionado ao bipar o leitor de código de barras
-    [HttpGet("codigo-barras/{codigo}")]
-    public async Task<ActionResult<Produto>> GetByCodigoBarras(string codigo)
-    {
-        var produto = await _context.Produtos
-            .Include(p => p.Fornecedor)
-            .FirstOrDefaultAsync(p => p.CodigoBarras == codigo.Trim());
+        var produto = _produtoService.ObterPorId(id);
 
         if (produto is null)
         {
-            return NotFound("Produto não encontrado para o código de barras informado.");
+            return NotFound();
         }
 
         return Ok(produto);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Produto>> Post([FromBody] CreateProdutoRequest request)
+    public ActionResult<Produto> Post([FromBody] CreateProdutoRequest request)
     {
-        var codigoExistente = await _context.Produtos
-            .AnyAsync(p => p.CodigoBarras == request.CodigoBarras.Trim());
-
-        if (codigoExistente)
+        if (string.IsNullOrWhiteSpace(request.Nome))
         {
-            return BadRequest("Já existe um produto cadastrado com este código de barras.");
+            return BadRequest("Nome do produto é obrigatório.");
         }
 
-        var produto = new Produto
+        if (request.PrecoCusto < 0 || request.PrecoVenda < 0)
         {
-            CodigoBarras = request.CodigoBarras.Trim(),
-            Nome = request.Nome.Trim(),
-            PrecoCusto = request.PrecoCusto,
-            PrecoVenda = request.PrecoVenda,
-            QuantidadeEstoque = request.QuantidadeEstoque,
-            EstoqueMinimo = request.EstoqueMinimo,
-            DataValidade = request.DataValidade,
-            FornecedorId = request.FornecedorId
-        };
+            return BadRequest("Preços não podem ser negativos.");
+        }
 
-        _context.Produtos.Add(produto);
-        await _context.SaveChangesAsync();
+        var produto = _produtoService.Criar(
+            request.Nome,
+            request.CodigoBarras,
+            request.Descricao,
+            request.PrecoCusto,
+            request.PrecoVenda,
+            request.IdCategoria,
+            request.IdFornecedor,
+            request.Ativo);
 
         return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);
     }
 
-    // Entrada rápida de estoque acionada por BIP
-    [HttpPost("entrada-bip")]
-    public async Task<ActionResult> RegistraEntradaPorBip([FromBody] EntradaBipRequest request)
+    [HttpPut("{id:int}")]
+    public ActionResult<Produto> Put(int id, [FromBody] UpdateProdutoRequest request)
     {
-        var produto = await _context.Produtos
-            .FirstOrDefaultAsync(p => p.CodigoBarras == request.CodigoBarras.Trim());
-
-        if (produto is null) return NotFound("Produto não cadastrado.");
-
-        produto.QuantidadeEstoque += request.Quantidade;
-
-        var movimentacao = new MovimentacaoEstoque
+        if (string.IsNullOrWhiteSpace(request.Nome))
         {
-            ProdutoId = produto.Id,
-            Quantidade = request.Quantidade,
-            Tipo = TipoMovimentacao.Entrada,
-            UsuarioId = request.UsuarioId,
-            DataMovimentacao = DateTime.UtcNow
-        };
+            return BadRequest("Nome do produto é obrigatório.");
+        }
 
-        _context.MovimentacoesEstoque.Add(movimentacao);
-        await _context.SaveChangesAsync();
+        if (request.PrecoCusto < 0 || request.PrecoVenda < 0)
+        {
+            return BadRequest("Preços não podem ser negativos.");
+        }
 
-        return Ok(new { Message = "Estoque atualizado com sucesso.", NovoEstoque = produto.QuantidadeEstoque });
+        var produtoAtualizado = _produtoService.Atualizar(
+            id,
+            request.Nome,
+            request.CodigoBarras,
+            request.Descricao,
+            request.PrecoCusto,
+            request.PrecoVenda,
+            request.IdCategoria,
+            request.IdFornecedor,
+            request.Ativo);
+
+        if (produtoAtualizado is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(produtoAtualizado);
+    }
+
+    [HttpDelete("{id:int}")]
+    public ActionResult Delete(int id)
+    {
+        var removido = _produtoService.Remover(id);
+
+        if (!removido)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
     }
 }
 
 public sealed class CreateProdutoRequest
 {
-    public string CodigoBarras { get; set; } = string.Empty;
     public string Nome { get; set; } = string.Empty;
+    public string? CodigoBarras { get; set; }
+    public string? Descricao { get; set; }
     public decimal PrecoCusto { get; set; }
     public decimal PrecoVenda { get; set; }
-    public int QuantidadeEstoque { get; set; }
-    public int EstoqueMinimo { get; set; }
-    public DateTime? DataValidade { get; set; }
-    public int FornecedorId { get; set; }
+    public int? IdCategoria { get; set; }
+    public int? IdFornecedor { get; set; }
+    public bool Ativo { get; set; } = true;
 }
 
-public sealed class EntradaBipRequest
+public sealed class UpdateProdutoRequest
 {
-    public string CodigoBarras { get; set; } = string.Empty;
-    public int Quantidade { get; set; } = 1;
-    public int UsuarioId { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string? CodigoBarras { get; set; }
+    public string? Descricao { get; set; }
+    public decimal PrecoCusto { get; set; }
+    public decimal PrecoVenda { get; set; }
+    public int? IdCategoria { get; set; }
+    public int? IdFornecedor { get; set; }
+    public bool Ativo { get; set; } = true;
 }

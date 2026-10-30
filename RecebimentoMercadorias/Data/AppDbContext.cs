@@ -16,6 +16,18 @@ public sealed class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.ToTable("usuarios");
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.Id).HasColumnName("id_usuario").ValueGeneratedOnAdd();
+            entity.Property(u => u.Nome).HasColumnName("nome").HasMaxLength(150).IsRequired();
+            entity.Property(u => u.Email).HasColumnName("email").HasMaxLength(100).IsRequired();
+            entity.Property(u => u.Cargo).HasColumnName("cargo").HasMaxLength(80).IsRequired();
+            entity.Property(u => u.Ativo).HasColumnName("ativo").HasDefaultValue(true);
+            entity.Property(u => u.DataCadastro).HasColumnName("data_cadastro").HasDefaultValueSql("now()");
+        });
+
         modelBuilder.Entity<Fornecedor>(entity =>
         {
             entity.ToTable("fornecedores");
@@ -47,6 +59,28 @@ public sealed class AppDbContext : DbContext
             entity.Property(p => p.IdFornecedor).HasColumnName("id_fornecedor");
             entity.Property(p => p.Ativo).HasColumnName("ativo").HasDefaultValue(true);
             entity.Property(p => p.DataCadastro).HasColumnName("data_cadastro").HasDefaultValueSql("now()");
+        });
+
+        modelBuilder.Entity<MovimentacaoEstoque>(entity =>
+        {
+            entity.ToTable("movimentacoes_estoque");
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Id).HasColumnName("id_movimentacao").ValueGeneratedOnAdd();
+            entity.Property(m => m.FilialId).HasColumnName("id_filial").IsRequired();
+            entity.Property(m => m.ProdutoId).HasColumnName("id_produto").IsRequired();
+            entity.Property(m => m.Tipo)
+                  .HasColumnName("tipo_movimentacao")
+                  .HasConversion<string>()
+                  .HasMaxLength(50)
+                  .IsRequired();
+            entity.Property(m => m.Quantidade).HasColumnName("quantidade").IsRequired();
+            entity.Property(m => m.DataMovimentacao).HasColumnName("data_movimentacao").HasDefaultValueSql("now()");
+            entity.Property(m => m.Observacao).HasColumnName("observacao");
+
+            entity.HasOne(m => m.Produto)
+                  .WithMany()
+                  .HasForeignKey(m => m.ProdutoId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

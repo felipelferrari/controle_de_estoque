@@ -11,6 +11,9 @@ public sealed class AppDbContext : DbContext
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Produto> Produtos => Set<Produto>();
     public DbSet<MovimentacaoEstoque> MovimentacoesEstoque => Set<MovimentacaoEstoque>();
+    public DbSet<Pedido> Pedidos => Set<Pedido>();
+    public DbSet<PedidoItem> PedidoItens => Set<PedidoItem>();
+    public DbSet<ConferenciaPedido> Conferencias => Set<ConferenciaPedido>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,6 +83,70 @@ public sealed class AppDbContext : DbContext
             entity.HasOne(m => m.Produto)
                   .WithMany()
                   .HasForeignKey(m => m.ProdutoId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Pedido>(entity =>
+        {
+            entity.ToTable("pedidos");
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Id).HasColumnName("id_pedido").ValueGeneratedOnAdd();
+            entity.Property(p => p.NumeroPedido).HasColumnName("numero_pedido").HasMaxLength(50).IsRequired();
+            entity.Property(p => p.Status)
+                  .HasColumnName("status")
+                  .HasConversion<string>()
+                  .HasMaxLength(30)
+                  .IsRequired();
+            entity.Property(p => p.Observacao).HasColumnName("observacao");
+            entity.Property(p => p.FilialId).HasColumnName("id_filial").IsRequired();
+            entity.Property(p => p.ValorTotal).HasColumnName("valor_total").HasColumnType("numeric(12,2)").IsRequired();
+            entity.Property(p => p.DataPedido).HasColumnName("data_pedido").HasDefaultValueSql("now()");
+        });
+
+        modelBuilder.Entity<PedidoItem>(entity =>
+        {
+            entity.ToTable("pedido_itens");
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.Id).HasColumnName("id_pedido_item").ValueGeneratedOnAdd();
+            entity.Property(i => i.PedidoId).HasColumnName("id_pedido").IsRequired();
+            entity.Property(i => i.ProdutoId).HasColumnName("id_produto").IsRequired();
+            entity.Property(i => i.Quantidade).HasColumnName("quantidade").IsRequired();
+            entity.Property(i => i.PrecoUnitario).HasColumnName("preco_unitario").HasColumnType("numeric(12,2)").IsRequired();
+            entity.Property(i => i.Total).HasColumnName("total").HasColumnType("numeric(12,2)").IsRequired();
+            entity.Property(i => i.Observacao).HasColumnName("observacao");
+
+            entity.HasOne(i => i.Pedido)
+                  .WithMany(p => p.Itens)
+                  .HasForeignKey(i => i.PedidoId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(i => i.Produto)
+                  .WithMany()
+                  .HasForeignKey(i => i.ProdutoId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ConferenciaPedido>(entity =>
+        {
+            entity.ToTable("conferencias");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Id).HasColumnName("id_conferencia").ValueGeneratedOnAdd();
+            entity.Property(c => c.PedidoId).HasColumnName("id_pedido").IsRequired();
+            entity.Property(c => c.ProdutoId).HasColumnName("id_produto").IsRequired();
+            entity.Property(c => c.QuantidadeRecebida).HasColumnName("quantidade_recebida").IsRequired();
+            entity.Property(c => c.QuantidadeEsperada).HasColumnName("quantidade_esperada").IsRequired();
+            entity.Property(c => c.Status).HasColumnName("status").HasMaxLength(30).IsRequired();
+            entity.Property(c => c.Observacao).HasColumnName("observacao");
+            entity.Property(c => c.DataConferencia).HasColumnName("data_conferencia").HasDefaultValueSql("now()");
+
+            entity.HasOne(c => c.Pedido)
+                  .WithMany()
+                  .HasForeignKey(c => c.PedidoId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.Produto)
+                  .WithMany()
+                  .HasForeignKey(c => c.ProdutoId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
     }

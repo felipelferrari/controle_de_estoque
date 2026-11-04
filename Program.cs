@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RecebimentoMercadorias.Data;
 using RecebimentoMercadorias.Services;
@@ -6,13 +7,20 @@ using RecebimentoMercadorias.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Adiciona os controllers do projeto
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 
 // Injeção de dependência dos serviços
 builder.Services.AddScoped<FornecedorService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<ProdutoService>();
+builder.Services.AddScoped<PedidoService>();
 
 // Configuração do Swagger
 builder.Services.AddSwaggerGen(options =>

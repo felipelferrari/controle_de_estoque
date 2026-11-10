@@ -37,6 +37,8 @@ public sealed class ProdutoService
         int? idFornecedor,
         bool ativo = true)
     {
+        ValidarCategoria(idCategoria);
+
         if (precoCusto < 0)
             throw new ArgumentException("O preço de custo não pode ser negativo.");
 
@@ -77,6 +79,8 @@ public sealed class ProdutoService
 
         if (produto is null) return null;
 
+        ValidarCategoria(idCategoria);
+
         if (precoCusto < 0)
             throw new ArgumentException("O preço de custo não pode ser negativo.");
 
@@ -112,5 +116,13 @@ public sealed class ProdutoService
     public int ObterQuantidadeAtivos()
     {
         return _context.Produtos.Count(p => p.Ativo);
+    }
+
+    private void ValidarCategoria(int? idCategoria)
+    {
+        if (idCategoria.HasValue && !_context.Categorias.Any(c => c.Id == idCategoria.Value))
+        {
+            throw new ArgumentException("A categoria informada não existe.");
+        }
     }
 }

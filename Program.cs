@@ -24,6 +24,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 // Injeção de dependência dos serviços
 builder.Services.AddScoped<FornecedorService>();
+builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<ProdutoService>();
 builder.Services.AddScoped<PedidoService>();

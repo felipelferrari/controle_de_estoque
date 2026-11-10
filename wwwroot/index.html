@@ -340,9 +340,9 @@
           <label class="block md:col-span-1">
             <span class="mb-1.5 block text-xs font-medium text-slate-500">Tipo</span>
             <select name="tipo" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:bg-white" required>
-              <option value="entrada">Entrada</option>
-              <option value="saida">Saída</option>
-              <option value="ajuste">Ajuste</option>
+              <option value="Entrada">Entrada</option>
+              <option value="Saida">Saída</option>
+              <option value="PerdaAvaria">Perda/Avaria</option>
             </select>
           </label>
 
@@ -384,29 +384,12 @@
         movements: []
       };
 
-      const demoProducts = [
-        { id: 1, codigoBarras: '7891000123450', nome: 'Arroz Integral 5kg', descricao: 'Arroz integral sem agrotóxicos', precoCusto: 22.5, precoVenda: 34.9, idCategoria: 1, idFornecedor: 1, ativo: true, estoqueAtual: 18, estoqueMinimo: 8, categoria: 'Mercaria' },
-        { id: 2, codigoBarras: '7891000123476', nome: 'Leite Integral 1L', descricao: 'Leite pasteurizado', precoCusto: 4.8, precoVenda: 8.9, idCategoria: 2, idFornecedor: 2, ativo: true, estoqueAtual: 14, estoqueMinimo: 6, categoria: 'Laticínios' },
-        { id: 3, codigoBarras: '7891000123483', nome: 'Refrigerante Cola 2L', descricao: 'Refrigerante em garrafa', precoCusto: 5.1, precoVenda: 9.5, idCategoria: 3, idFornecedor: 3, ativo: true, estoqueAtual: 5, estoqueMinimo: 8, categoria: 'Refrigerantes' },
-        { id: 4, codigoBarras: '7891000123490', nome: 'Sabão em Pó 1kg', descricao: 'Limpeza para roupas', precoCusto: 11.4, precoVenda: 19.9, idCategoria: 4, idFornecedor: 4, ativo: true, estoqueAtual: 3, estoqueMinimo: 6, categoria: 'Limpeza' },
-        { id: 5, codigoBarras: '7891000123506', nome: 'Bracelete Prata', descricao: 'Acessório de bijuteria', precoCusto: 8.2, precoVenda: 16.9, idCategoria: 5, idFornecedor: 5, ativo: true, estoqueAtual: 0, estoqueMinimo: 3, categoria: 'Bijuterias' },
-        { id: 6, codigoBarras: '7891000123513', nome: 'Chocolate ao Leite', descricao: 'Doces e sobremesas', precoCusto: 3.2, precoVenda: 5.8, idCategoria: 1, idFornecedor: 2, ativo: true, estoqueAtual: 9, estoqueMinimo: 5, categoria: 'Doces' },
-        { id: 7, codigoBarras: '7891000123520', nome: 'Água Mineral 500ml', descricao: 'Água sem gás', precoCusto: 1.9, precoVenda: 3.6, idCategoria: 3, idFornecedor: 3, ativo: true, estoqueAtual: 21, estoqueMinimo: 10, categoria: 'Bebidas' }
-      ];
-
       const demoSuppliers = [
         { id: 1, razaoSocial: 'Distribuidora Norte Alimentos', nomeFantasia: 'Norte Foods', cnpj: '11.222.333/0001-55', telefone: '(11) 3456-7788', email: 'contato@nortefoods.com', endereco: 'Rua das Flores, 105', ativo: true },
         { id: 2, razaoSocial: 'Laticínios Vale Verde', nomeFantasia: 'Vale Verde', cnpj: '22.333.444/0001-12', telefone: '(21) 99888-1122', email: 'vendas@valeverde.com.br', endereco: 'Avenida Paulista, 200', ativo: true },
         { id: 3, razaoSocial: 'Bebidas & Cia', nomeFantasia: 'Bebidas & Cia', cnpj: '33.444.555/0001-89', telefone: '(31) 3344-6677', email: 'atendimento@bebidasecia.com', endereco: 'Rua do Mercado, 77', ativo: true },
         { id: 4, razaoSocial: 'Casa Limpa', nomeFantasia: 'Casa Limpa', cnpj: '44.555.666/0001-90', telefone: '(51) 3010-5000', email: 'financeiro@casalimpa.com', endereco: 'Avenida Central, 450', ativo: true },
         { id: 5, razaoSocial: 'Brilho & Acessórios', nomeFantasia: 'Brilho', cnpj: '55.666.777/0001-34', telefone: '(41) 3802-6100', email: 'vendas@brilho.com', endereco: 'Praça da Moda, 14', ativo: true }
-      ];
-
-      const demoMovements = [
-        { id: 1, tipo: 'entrada', produto: 'Arroz Integral 5kg', quantidade: 12, data: 'Hoje, 08:35', status: 'Entrada' },
-        { id: 2, tipo: 'saida', produto: 'Sabão em Pó 1kg', quantidade: 4, data: 'Hoje, 07:10', status: 'Saída' },
-        { id: 3, tipo: 'entrada', produto: 'Leite Integral 1L', quantidade: 18, data: 'Ontem, 18:45', status: 'Entrada' },
-        { id: 4, tipo: 'saida', produto: 'Bracelete Prata', quantidade: 1, data: 'Ontem, 16:25', status: 'Saída' }
       ];
 
       function formatCurrency(value) {
@@ -428,8 +411,10 @@
       }
 
       function normalizeProduct(item) {
-        const estoqueAtual = Number(item.estoqueAtual ?? item.quantidadeAtual ?? ((item.id || 0) % 12) + 4);
-        const estoqueMinimo = Number(item.estoqueMinimo ?? item.quantidadeMinima ?? 6);
+        const quantidade = item.estoqueAtual ?? item.quantidadeAtual;
+        const minimo = item.estoqueMinimo ?? item.quantidadeMinima;
+        const estoqueAtual = quantidade == null ? null : Number(quantidade);
+        const estoqueMinimo = minimo == null ? null : Number(minimo);
         const categoria = item.categoria || getCategoryName(item.idCategoria || 1);
 
         return {
@@ -480,18 +465,22 @@
       }
 
       function getProductStatus(product) {
+        if (product.estoqueAtual == null) return 'indisponivel';
         if (product.estoqueAtual <= 0) return 'esgotado';
+        if (product.estoqueMinimo == null) return 'indisponivel';
         if (product.estoqueAtual <= product.estoqueMinimo) return 'baixo';
         return 'normal';
       }
 
       function statusClasses(status) {
+        if (status === 'indisponivel') return 'bg-slate-100 text-slate-600';
         if (status === 'esgotado') return 'bg-red-100 text-red-700';
         if (status === 'baixo') return 'bg-amber-100 text-amber-700';
         return 'bg-emerald-100 text-emerald-700';
       }
 
       function statusLabel(status) {
+        if (status === 'indisponivel') return 'Sem dados';
         if (status === 'esgotado') return 'Esgotado';
         if (status === 'baixo') return 'Baixo';
         return 'Normal';
@@ -499,12 +488,16 @@
 
       function updateMetrics() {
         const total = state.products.length;
-        const valorEstoque = state.products.reduce((sum, product) => sum + (Number(product.precoVenda || 0) * Number(product.estoqueAtual || 0)), 0);
-        const baixo = state.products.filter((product) => getProductStatus(product) === 'baixo').length;
-        const esgotados = state.products.filter((product) => getProductStatus(product) === 'esgotado').length;
+        const estoqueCompleto = state.products.every((product) => product.estoqueAtual != null);
+        const statusCompleto = state.products.every((product) => getProductStatus(product) !== 'indisponivel');
+        const valorEstoque = estoqueCompleto
+          ? formatCurrency(state.products.reduce((sum, product) => sum + (product.precoVenda * product.estoqueAtual), 0))
+          : '—';
+        const baixo = statusCompleto ? state.products.filter((product) => getProductStatus(product) === 'baixo').length : '—';
+        const esgotados = statusCompleto ? state.products.filter((product) => getProductStatus(product) === 'esgotado').length : '—';
 
         qs('#totalProdutos').textContent = total;
-        qs('#valorEstoque').textContent = formatCurrency(valorEstoque);
+        qs('#valorEstoque').textContent = valorEstoque;
         qs('#estoqueBaixo').textContent = baixo;
         qs('#esgotados').textContent = esgotados;
       }
@@ -534,7 +527,7 @@
                   </div>
                 </div>
               </td>
-              <td class="px-5 py-4 font-medium">${product.estoqueAtual} / ${product.estoqueMinimo}</td>
+              <td class="px-5 py-4 font-medium">${product.estoqueAtual == null ? '—' : product.estoqueMinimo == null ? product.estoqueAtual : `${product.estoqueAtual} / ${product.estoqueMinimo}`}</td>
               <td class="px-5 py-4 font-medium">${formatCurrency(product.precoVenda)}</td>
               <td class="px-5 py-4">
                 <span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusClasses(statusCurrent)}">${statusLabel(statusCurrent)}</span>
@@ -555,23 +548,31 @@
       }
 
       function renderSidebar() {
-        const items = state.movements.length ? state.movements.slice(0, 5) : demoMovements;
+        const items = state.movements.slice(0, 5);
+        if (!items.length) {
+          qs('#movimentacoesSidebar').innerHTML = '<p class="text-sm text-slate-500">Nenhuma movimentação registrada.</p>';
+          return;
+        }
         qs('#movimentacoesSidebar').innerHTML = items.map((movement) => {
-          const isEntrada = movement.tipo === 'entrada';
+          const tipo = String(movement.tipo || '').toLowerCase();
+          const isEntrada = tipo === 'entrada';
+          const produto = movement.produto?.nome || state.products.find((item) => item.id === movement.produtoId)?.nome || 'Produto';
+          const data = movement.dataMovimentacao ? new Date(movement.dataMovimentacao).toLocaleString('pt-BR') : 'Data indisponível';
+          const tipoLabel = isEntrada ? 'Entrada' : tipo === 'perdaavaria' ? 'Perda/Avaria' : 'Saída';
           return `
             <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <div class="flex items-start justify-between gap-3">
                 <div>
-                  <p class="text-sm font-semibold text-slate-900">${movement.produto}</p>
-                  <p class="mt-1 text-xs text-slate-500">${movement.data}</p>
+                  <p class="text-sm font-semibold text-slate-900">${produto}</p>
+                  <p class="mt-1 text-xs text-slate-500">${data}</p>
                 </div>
                 <span class="inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${isEntrada ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">
-                  ${isEntrada ? 'Entrada' : 'Saída'}
+                  ${tipoLabel}
                 </span>
               </div>
               <div class="mt-3 flex items-center justify-between text-xs text-slate-600">
                 <span>${movement.quantidade} itens</span>
-                <span>${movement.status || (isEntrada ? 'Confirmado' : 'Ajustado')}</span>
+                <span>Filial ${movement.filialId}</span>
               </div>
             </div>
           `;
@@ -705,29 +706,19 @@
         event.preventDefault();
         const form = event.currentTarget;
         const payload = {
-          idProduto: Number(form.idProduto.value),
+          produtoId: Number(form.idProduto.value),
           tipo: form.tipo.value,
           quantidade: Number(form.quantidade.value),
-          idFilial: Number(form.idFilial.value),
-          observacao: form.observacao.value || ''
-        };
-
-        const product = state.products.find((item) => item.id === payload.idProduto);
-        const movement = {
-          id: Date.now(),
-          tipo: payload.tipo,
-          produto: product ? product.nome : 'Produto',
-          quantidade: payload.quantidade,
-          data: 'Agora',
-          status: payload.tipo === 'entrada' ? 'Entrada' : 'Saída'
+          filialId: Number(form.idFilial.value),
+          observacao: form.observacao.value || null
         };
 
         try {
-          const url = `${API_BASE}/movimentacoes-estoque`;
-          await fetchJson(url, { method: 'POST', body: JSON.stringify(payload) });
+          await fetchJson(`${API_BASE}/MovimentacoesEstoque`, { method: 'POST', body: JSON.stringify(payload) });
+          await loadMovements();
         } catch (error) {
-          state.movements.unshift(movement);
-          alert('Movimentação registrada localmente. O endpoint /api/movimentacoes-estoque ainda não existe no backend atual.');
+          alert(`Não foi possível registrar a movimentação: ${error.message}`);
+          return;
         }
 
         closeModal('movementModal');
@@ -743,12 +734,8 @@
           const data = await fetchJson(`${API_BASE}/produtos`);
           state.products = (Array.isArray(data) ? data : []).map(normalizeProduct);
         } catch (error) {
-          state.products = demoProducts.map(normalizeProduct);
-          console.warn('Usando dados demo para produtos:', error.message);
-        }
-
-        if (!state.products.length) {
-          state.products = demoProducts.map(normalizeProduct);
+          state.products = [];
+          console.warn('Não foi possível carregar produtos:', error.message);
         }
 
         refreshCategoryOptions();
@@ -773,6 +760,18 @@
         renderSupplierOptions();
       }
 
+      async function loadMovements() {
+        try {
+          const data = await fetchJson(`${API_BASE}/MovimentacoesEstoque`);
+          state.movements = Array.isArray(data) ? data : [];
+        } catch (error) {
+          state.movements = [];
+          console.warn('Não foi possível carregar movimentações:', error.message);
+        }
+
+        renderSidebar();
+      }
+
       function renderAll() {
         refreshCategoryOptions();
         renderSupplierOptions();
@@ -784,6 +783,7 @@
       async function init() {
         await loadSuppliers();
         await loadProducts();
+        await loadMovements();
         renderAll();
         lucide.createIcons();
       }

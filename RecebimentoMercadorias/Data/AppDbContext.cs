@@ -8,6 +8,7 @@ public sealed class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
+    public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Produto> Produtos => Set<Produto>();
     public DbSet<MovimentacaoEstoque> MovimentacoesEstoque => Set<MovimentacaoEstoque>();
@@ -47,6 +48,17 @@ public sealed class AppDbContext : DbContext
             entity.Property(f => f.DataCadastro).HasColumnName("data_cadastro").HasDefaultValueSql("now()");
         });
 
+        modelBuilder.Entity<Categoria>(entity =>
+        {
+            entity.ToTable("categorias");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Id).HasColumnName("id_categoria").ValueGeneratedOnAdd();
+            entity.Property(c => c.Nome).HasColumnName("nome").HasMaxLength(100).IsRequired();
+            entity.Property(c => c.Descricao).HasColumnName("descricao");
+            entity.Property(c => c.Ativo).HasColumnName("ativo").HasDefaultValue(true);
+            entity.Property(c => c.DataCadastro).HasColumnName("data_cadastro").HasDefaultValueSql("now()");
+        });
+
         modelBuilder.Entity<Produto>(entity =>
         {
             entity.ToTable("produtos");
@@ -62,6 +74,11 @@ public sealed class AppDbContext : DbContext
             entity.Property(p => p.IdFornecedor).HasColumnName("id_fornecedor");
             entity.Property(p => p.Ativo).HasColumnName("ativo").HasDefaultValue(true);
             entity.Property(p => p.DataCadastro).HasColumnName("data_cadastro").HasDefaultValueSql("now()");
+
+            entity.HasOne<Categoria>()
+                .WithMany()
+                .HasForeignKey(p => p.IdCategoria)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<MovimentacaoEstoque>(entity =>

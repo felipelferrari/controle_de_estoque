@@ -47,15 +47,23 @@ public sealed class ProdutosController : ControllerBase
             return BadRequest("Preços não podem ser negativos.");
         }
 
-        var produto = _produtoService.Criar(
-            request.Nome,
-            request.CodigoBarras,
-            request.Descricao,
-            request.PrecoCusto,
-            request.PrecoVenda,
-            request.IdCategoria,
-            request.IdFornecedor,
-            request.Ativo);
+        Produto produto;
+        try
+        {
+            produto = _produtoService.Criar(
+                request.Nome,
+                request.CodigoBarras,
+                request.Descricao,
+                request.PrecoCusto,
+                request.PrecoVenda,
+                request.IdCategoria,
+                request.IdFornecedor,
+                request.Ativo);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
 
         return CreatedAtAction(nameof(GetById), new { id = produto.Id }, produto);
     }
@@ -73,16 +81,24 @@ public sealed class ProdutosController : ControllerBase
             return BadRequest("Preços não podem ser negativos.");
         }
 
-        var produtoAtualizado = _produtoService.Atualizar(
-            id,
-            request.Nome,
-            request.CodigoBarras,
-            request.Descricao,
-            request.PrecoCusto,
-            request.PrecoVenda,
-            request.IdCategoria,
-            request.IdFornecedor,
-            request.Ativo);
+        Produto? produtoAtualizado;
+        try
+        {
+            produtoAtualizado = _produtoService.Atualizar(
+                id,
+                request.Nome,
+                request.CodigoBarras,
+                request.Descricao,
+                request.PrecoCusto,
+                request.PrecoVenda,
+                request.IdCategoria,
+                request.IdFornecedor,
+                request.Ativo);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
 
         if (produtoAtualizado is null)
         {

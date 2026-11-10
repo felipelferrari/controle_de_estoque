@@ -8,6 +8,12 @@ CREATE TABLE IF NOT EXISTS categorias (
     data_cadastro timestamp with time zone NOT NULL DEFAULT now()
 );
 
+ALTER TABLE categorias
+    ADD COLUMN IF NOT EXISTS ativo boolean NOT NULL DEFAULT true;
+
+ALTER TABLE categorias
+    ADD COLUMN IF NOT EXISTS data_cadastro timestamp with time zone NOT NULL DEFAULT now();
+
 INSERT INTO categorias (id_categoria, nome)
 SELECT DISTINCT p.id_categoria, 'Categoria ' || p.id_categoria
 FROM produtos p

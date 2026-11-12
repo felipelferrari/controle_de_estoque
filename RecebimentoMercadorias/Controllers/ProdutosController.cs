@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecebimentoMercadorias.Entities;
 using RecebimentoMercadorias.Services;
@@ -6,6 +7,7 @@ namespace RecebimentoMercadorias.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "StockUser")]
 public sealed class ProdutosController : ControllerBase
 {
     private readonly ProdutoService _produtoService;
@@ -35,6 +37,7 @@ public sealed class ProdutosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "Managers")]
     public ActionResult<Produto> Post([FromBody] CreateProdutoRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Nome))
@@ -69,6 +72,7 @@ public sealed class ProdutosController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "Managers")]
     public ActionResult<Produto> Put(int id, [FromBody] UpdateProdutoRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Nome))
@@ -109,6 +113,7 @@ public sealed class ProdutosController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "Managers")]
     public ActionResult Delete(int id)
     {
         var removido = _produtoService.Remover(id);

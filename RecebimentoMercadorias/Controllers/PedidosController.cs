@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecebimentoMercadorias.Entities;
 using RecebimentoMercadorias.Services;
@@ -6,6 +7,7 @@ namespace RecebimentoMercadorias.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "StockUser")]
 public sealed class PedidosController : ControllerBase
 {
     private readonly PedidoService _pedidoService;
@@ -30,6 +32,7 @@ public sealed class PedidosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "OrderCreators")]
     public ActionResult<Pedido> Post([FromBody] CreatePedidoRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.NumeroPedido))
@@ -40,6 +43,7 @@ public sealed class PedidosController : ControllerBase
     }
 
     [HttpPost("{id:int}/itens")]
+    [Authorize(Policy = "OrderCreators")]
     public ActionResult<Pedido> AdicionarItem(int id, [FromBody] AddPedidoItemRequest request)
     {
         try
@@ -55,6 +59,7 @@ public sealed class PedidosController : ControllerBase
     }
 
     [HttpPatch("{id:int}/status")]
+    [Authorize(Policy = "ConferenceOperators")]
     public ActionResult<Pedido> AtualizarStatus(int id, [FromBody] UpdatePedidoStatusRequest request)
     {
         var pedido = _pedidoService.AtualizarStatus(id, request.Status);
@@ -63,12 +68,14 @@ public sealed class PedidosController : ControllerBase
     }
 
     [HttpGet("{id:int}/conferencia")]
+    [Authorize(Policy = "ConferenceOperators")]
     public ActionResult<IEnumerable<ConferenciaPedido>> GetConferencia(int id)
     {
         return Ok(_pedidoService.ObterConferenciaDoPedido(id));
     }
 
     [HttpPost("{id:int}/conferencia")]
+    [Authorize(Policy = "ConferenceOperators")]
     public ActionResult RegistrarConferencia(int id, [FromBody] RegistrarConferenciaRequest request)
     {
         try

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecebimentoMercadorias.Services;
 
@@ -5,6 +6,7 @@ namespace RecebimentoMercadorias.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "Managers")]
 public sealed class RelatoriosController : ControllerBase
 {
     private readonly FornecedorService _fornecedorService;

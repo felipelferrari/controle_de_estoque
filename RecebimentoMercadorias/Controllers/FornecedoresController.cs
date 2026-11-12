@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecebimentoMercadorias.Entities;
 using RecebimentoMercadorias.Services;
@@ -6,6 +7,7 @@ namespace RecebimentoMercadorias.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "StockUser")]
 public sealed class FornecedoresController : ControllerBase
 {
     private readonly FornecedorService _fornecedorService;
@@ -35,6 +37,7 @@ public sealed class FornecedoresController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "Managers")]
     public ActionResult<Fornecedor> Post([FromBody] CreateFornecedorRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.RazaoSocial) ||
@@ -56,6 +59,7 @@ public sealed class FornecedoresController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "Managers")]
     public ActionResult<Fornecedor> Put(int id, [FromBody] UpdateFornecedorRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.RazaoSocial) ||
@@ -83,6 +87,7 @@ public sealed class FornecedoresController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "Managers")]
     public ActionResult Delete(int id)
     {
         var removido = _fornecedorService.Remover(id);

@@ -30,6 +30,8 @@ public sealed class AppDbContext : DbContext
             entity.Property(u => u.Cargo).HasColumnName("cargo").HasMaxLength(80).IsRequired();
             entity.Property(u => u.Ativo).HasColumnName("ativo").HasDefaultValue(true);
             entity.Property(u => u.DataCadastro).HasColumnName("data_cadastro").HasDefaultValueSql("now()");
+            entity.Property(u => u.AuthUserId).HasColumnName("auth_user_id");
+            entity.HasIndex(u => u.AuthUserId).IsUnique().HasFilter("auth_user_id IS NOT NULL");
         });
 
         modelBuilder.Entity<Fornecedor>(entity =>

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace RecebimentoMercadorias.Entities;
 
@@ -22,4 +23,8 @@ public sealed class Usuario
 
     [Column("data_cadastro")]
     public DateTime DataCadastro { get; set; } = DateTime.UtcNow;
+
+    [Column("auth_user_id")]
+    [JsonIgnore]
+    public Guid? AuthUserId { get; set; }
 }

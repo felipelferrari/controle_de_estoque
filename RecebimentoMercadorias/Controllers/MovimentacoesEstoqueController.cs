@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecebimentoMercadorias.Entities;
 using RecebimentoMercadorias.Services;
@@ -6,6 +7,7 @@ namespace RecebimentoMercadorias.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "StockUser")]
 public sealed class MovimentacoesEstoqueController : ControllerBase
 {
     private readonly MovimentacaoEstoqueService _movimentacaoService;
@@ -36,6 +38,7 @@ public sealed class MovimentacoesEstoqueController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "StockOperators")]
     public ActionResult<MovimentacaoEstoque> Post([FromBody] RegistrarMovimentacaoRequest request)
     {
         try

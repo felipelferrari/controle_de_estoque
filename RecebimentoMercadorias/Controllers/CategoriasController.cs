@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecebimentoMercadorias.Entities;
 using RecebimentoMercadorias.Services;
@@ -6,6 +7,7 @@ namespace RecebimentoMercadorias.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "StockUser")]
 public sealed class CategoriasController : ControllerBase
 {
     private readonly CategoriaService _categoriaService;
@@ -29,6 +31,7 @@ public sealed class CategoriasController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "Managers")]
     public ActionResult<Categoria> Post([FromBody] CategoriaRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Nome))
@@ -41,6 +44,7 @@ public sealed class CategoriasController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "Managers")]
     public ActionResult<Categoria> Put(int id, [FromBody] CategoriaRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Nome))
@@ -53,6 +57,7 @@ public sealed class CategoriasController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "Managers")]
     public ActionResult Delete(int id)
     {
         try
